@@ -4,7 +4,10 @@
 namespace App\Service;
 
 
+use App\Entity\Poll;
+use Doctrine\ORM\EntityManagerInterface;
 use Telegram\Bot\Api;
+use Telegram\Bot\Exceptions\TelegramSDKException;
 
 class TelegramApiManager
 {
@@ -25,17 +28,26 @@ class TelegramApiManager
      * @var string
      */
     private $telegramChatId;
+    /**
+     * @var EntityManagerInterface
+     */
+    private $entityManager;
 
     /**
      * @param Api $telegram
+     * @param EntityManagerInterface $entityManager
      * @param string $telegramChatId
      */
-    public function __construct(Api $telegram, string $telegramChatId)
+    public function __construct(Api $telegram, EntityManagerInterface $entityManager, string $telegramChatId)
     {
         $this->telegram = $telegram;
         $this->telegramChatId = $telegramChatId;
+        $this->entityManager = $entityManager;
     }
 
+    /**
+     * @throws TelegramSDKException
+     */
     public function sendInitialMessage(): void
     {
         $message = $this->telegram->sendPoll([
@@ -45,7 +57,7 @@ class TelegramApiManager
             'is_anonymous' => false,
         ]);
 
-        echo $message->get('message_id');
+        $this->savePoll($message->get('message_id'));
     }
 
     public function sendNotificationMessage(): void
@@ -54,5 +66,13 @@ class TelegramApiManager
 
     public function sendResumeMessage(): void
     {
+    }
+
+    private function savePoll(int $messageId)
+    {
+        $poll = (new Poll())
+            ->setMessageId($messageId);
+        $this->entityManager->persist($poll);
+        $this->entityManager->flush();
     }
 }
