@@ -43,6 +43,14 @@ class TelegramApiManager
      * @var LoggerInterface
      */
     private $logger;
+    /**
+     * @var string
+     */
+    private $telegramWebhook;
+    /**
+     * @var string
+     */
+    private $telegramWebhookToken;
 
     /**
      * @param Api $telegram
@@ -50,19 +58,25 @@ class TelegramApiManager
      * @param MessageManager $messageManager
      * @param LoggerInterface $logger
      * @param string $telegramChatId
+     * @param string $telegramWebhook
+     * @param string $telegramWebhookToken
      */
     public function __construct(
         Api $telegram,
         EntityManagerInterface $entityManager,
         MessageManager $messageManager,
         LoggerInterface $logger,
-        string $telegramChatId
+        string $telegramChatId,
+        string $telegramWebhook,
+        string $telegramWebhookToken
     ) {
         $this->telegram = $telegram;
         $this->telegramChatId = $telegramChatId;
         $this->entityManager = $entityManager;
         $this->messageManager = $messageManager;
         $this->logger = $logger;
+        $this->telegramWebhook = $telegramWebhook;
+        $this->telegramWebhookToken = $telegramWebhookToken;
     }
 
     /**
@@ -147,5 +161,17 @@ class TelegramApiManager
     {
         $optionId = $pollAnswer->get('option_ids')->get('0');
         return self::ANSWERS[$optionId] ?? '';
+    }
+
+    /**
+     * @throws TelegramSDKException
+     */
+    public function setupWebhook(): void
+    {
+        $this->telegram->setWebhook(['url' => $this->telegramWebhook.$this->telegramWebhookToken]);
+        $this->telegram->sendMessage([
+            'chat_id' => $this->telegramChatId,
+            'text' => 'Webhook set successful'
+        ]);
     }
 }
