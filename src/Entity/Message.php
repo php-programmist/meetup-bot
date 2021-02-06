@@ -27,12 +27,6 @@ class Message
     private $text;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Member::class)
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $member;
-
-    /**
      * @ORM\Column(type="datetime", options={"default": "CURRENT_TIMESTAMP"})
      * @Gedmo\Mapping\Annotation\Timestampable(on="create")
      */
@@ -48,6 +42,12 @@ class Message
      * @var int
      */
     private $updateId;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Member::class, inversedBy="messages")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $member;
 
     public function getId(): ?int
     {

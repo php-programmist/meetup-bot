@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Message;
 use DateTime;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
 
 class MessageManager
@@ -58,5 +59,15 @@ class MessageManager
         }
 
         $this->entityManager->flush();
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function deleteAllMessages():void
+    {
+        $this->entityManager
+            ->getConnection()
+            ->executeStatement('truncate table message');
     }
 }

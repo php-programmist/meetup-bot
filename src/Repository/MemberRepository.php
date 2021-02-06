@@ -19,6 +19,19 @@ class MemberRepository extends ServiceEntityRepository
         parent::__construct($registry, Member::class);
     }
 
+    /**
+     * @return Member[]|array
+     */
+    public function getNotAnswered():array
+    {
+        return $this->createQueryBuilder('m')
+            ->leftJoin('m.messages','messages')
+            ->andWhere('messages.id is null')
+            ->orderBy('m.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     // /**
     //  * @return Member[] Returns an array of Member objects
     //  */

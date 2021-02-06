@@ -4,11 +4,15 @@
 namespace App\Service;
 
 
+use App\Entity\Member;
 use App\Entity\Poll;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
+use Telegram\Bot\Keyboard\Keyboard;
 use Telegram\Bot\Objects\Update;
 use Throwable;
 
@@ -80,10 +84,12 @@ class TelegramApiManager
     }
 
     /**
-     * @throws TelegramSDKException
+     * @throws TelegramSDKException|Exception
      */
     public function sendInitialMessage(): void
     {
+        $this->messageManager->deleteAllMessages();
+
         $message = $this->telegram->sendPoll([
             'chat_id' => $this->telegramChatId,
             'question' => self::MESSAGE_INITIAL,
@@ -94,14 +100,43 @@ class TelegramApiManager
         $this->savePoll($message->get('message_id'));
     }
 
+    /**
+     * @throws TelegramSDKException
+     */
     public function sendNotificationMessage(): void
     {
+        $notAnsweredMembers = $this->entityManager
+            ->getRepository(Member::class)
+            ->getNotAnswered();
+        if (empty($notAnsweredMembers)) {
+            return;
+        }
+
+        $keyboard = [
+            self::ANSWERS,
+        ];
+
+        $reply_markup = Keyboard::make([
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => true
+        ]);
+
+        $this->telegram->sendMessage([
+            'chat_id' => $this->telegramChatId,
+            'text' => $this->getNotificationMessage($notAnsweredMembers),
+            'reply_markup' => $reply_markup
+        ]);
+
     }
 
     public function handleUpdate(): void
     {
         try {
             $update = $this->telegram->commandsHandler(true);
+            if (null === $update) {
+                throw new RuntimeException('Update object is NULL');
+            }
             $this->handlePollUpdate($update);
             $this->handleMessageUpdate($update);
         } catch (Throwable $e) {
@@ -140,7 +175,7 @@ class TelegramApiManager
 
     private function handleMessageUpdate(Update $update): void
     {
-        $message = $update->getMessage();
+        $message = $update->get('message');
         if (null === $message) {
             return;
         }
@@ -173,5 +208,19 @@ class TelegramApiManager
             'chat_id' => $this->telegramChatId,
             'text' => 'Webhook set successful'
         ]);
+    }
+
+    /**
+     * @param $notAnsweredMembers
+     * @return string
+     */
+    private function getNotificationMessage($notAnsweredMembers): string
+    {
+        $message = '';
+        /** @var Member $member */
+        foreach ($notAnsweredMembers as $member) {
+            $message .= sprintf('@%s, ', $member->getUsername());
+        }
+        return sprintf(self::MESSAGE_NOTIFICATION, $message);
     }
 }
