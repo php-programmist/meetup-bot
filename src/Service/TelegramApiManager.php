@@ -6,8 +6,11 @@ namespace App\Service;
 
 use App\Entity\Poll;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
+use Telegram\Bot\Objects\Update;
+use Throwable;
 
 class TelegramApiManager
 {
@@ -32,17 +35,34 @@ class TelegramApiManager
      * @var EntityManagerInterface
      */
     private $entityManager;
+    /**
+     * @var MessageManager
+     */
+    private $messageManager;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * @param Api $telegram
      * @param EntityManagerInterface $entityManager
+     * @param MessageManager $messageManager
+     * @param LoggerInterface $logger
      * @param string $telegramChatId
      */
-    public function __construct(Api $telegram, EntityManagerInterface $entityManager, string $telegramChatId)
-    {
+    public function __construct(
+        Api $telegram,
+        EntityManagerInterface $entityManager,
+        MessageManager $messageManager,
+        LoggerInterface $logger,
+        string $telegramChatId
+    ) {
         $this->telegram = $telegram;
         $this->telegramChatId = $telegramChatId;
         $this->entityManager = $entityManager;
+        $this->messageManager = $messageManager;
+        $this->logger = $logger;
     }
 
     /**
@@ -64,15 +84,68 @@ class TelegramApiManager
     {
     }
 
+    public function handleUpdate(): void
+    {
+        try {
+            $update = $this->telegram->commandsHandler(true);
+            $this->handlePollUpdate($update);
+            $this->handleMessageUpdate($update);
+        } catch (Throwable $e) {
+            $this->logger->error('Telegram webhook error: ' . $e->getMessage().'. Trace:'.$e->getTraceAsString());
+        }
+    }
+
     public function sendResumeMessage(): void
     {
     }
 
-    private function savePoll(int $messageId)
+    private function savePoll(int $messageId): void
     {
         $poll = (new Poll())
             ->setMessageId($messageId);
         $this->entityManager->persist($poll);
         $this->entityManager->flush();
+    }
+
+    private function handlePollUpdate(Update $update): void
+    {
+        $pollAnswer = $update->get('poll_answer');
+        if (null === $pollAnswer) {
+            return;
+        }
+        $text = $this->preparePollAnswer($pollAnswer);
+        $username = $pollAnswer->get('user')->get('username');
+        $updateId = $update->get('update_id');
+
+        if (empty($text) || empty($username) || null === $updateId) {
+            return;
+        }
+
+        $this->messageManager->saveMessage($text, $username, $updateId);
+    }
+
+    private function handleMessageUpdate(Update $update): void
+    {
+        $message = $update->getMessage();
+        if (null === $message) {
+            return;
+        }
+
+        $updateId = $update->get('update_id');
+        $text = $message->get('text');
+        $username = $message->get('from')->get('username');
+        $date = $message->get('date');
+
+        if (empty($text) || empty($username) || null === $updateId) {
+            return;
+        }
+
+        $this->messageManager->saveMessage($text, $username, $updateId, $date);
+    }
+
+    private function preparePollAnswer(object $pollAnswer): string
+    {
+        $optionId = $pollAnswer->get('option_ids')->get('0');
+        return self::ANSWERS[$optionId] ?? '';
     }
 }

@@ -18,11 +18,21 @@ class TelegramApiFactory
      * @var string
      */
     private $telegramWebhook;
+    /**
+     * @var string
+     */
+    private $telegramWebhookToken;
 
-    public function __construct(string $telegramBotToken, string $telegramWebhook)
+    /**
+     * @param string $telegramBotToken
+     * @param string $telegramWebhook
+     * @param string $telegramWebhookToken
+     */
+    public function __construct(string $telegramBotToken, string $telegramWebhook, string $telegramWebhookToken)
     {
         $this->telegramBotToken = $telegramBotToken;
         $this->telegramWebhook = $telegramWebhook;
+        $this->telegramWebhookToken = $telegramWebhookToken;
     }
 
     /**
@@ -33,7 +43,7 @@ class TelegramApiFactory
     {
         $this->checkVariables();
         $api = new Api($this->telegramBotToken);
-        $api->setWebhook(['url' => $this->telegramWebhook]);
+        $api->setWebhook(['url' => $this->telegramWebhook.$this->telegramWebhookToken]);
 
         return $api;
     }
