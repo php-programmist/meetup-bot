@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Service\TelegramApiManager;
 use LogicException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,16 +26,22 @@ class TelegramSendCommand extends Command
      * @var TelegramApiManager
      */
     private $telegramApiManager;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * @param TelegramApiManager $telegramApiManager
+     * @param LoggerInterface $logger
      * @param string|null $name
      */
-    public function __construct(TelegramApiManager $telegramApiManager, string $name = null)
+    public function __construct(TelegramApiManager $telegramApiManager, LoggerInterface $logger,string $name = null)
     {
         $this->telegramApiManager = $telegramApiManager;
 
         parent::__construct($name);
+        $this->logger = $logger;
     }
 
     protected static $defaultName = 'app:telegram:send';
@@ -69,6 +76,7 @@ class TelegramSendCommand extends Command
             }
         } catch (Throwable $e) {
             $io->error($e->getMessage());
+            $this->logger->error('Executing app:telegram:send error:'. $e->getMessage());
             return Command::FAILURE;
         }
 
