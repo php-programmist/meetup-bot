@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Member;
+use App\Service\TelegramApiManager;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -27,6 +29,22 @@ class MemberRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('m')
             ->leftJoin('m.messages','messages')
             ->andWhere('messages.id is null')
+            ->orderBy('m.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return Member[]|array
+     */
+    public function getPresent():array
+    {
+        return $this->createQueryBuilder('m')
+            ->join('m.messages','messages1')
+            ->leftJoin('m.messages','messages2', Join::WITH, 'messages1.id < messages2.id')
+            ->andWhere('messages2.id is null')
+            ->andWhere('messages1.text = :text')
+            ->setParameter('text',TelegramApiManager::ANSWER_YES)
             ->orderBy('m.id', 'ASC')
             ->getQuery()
             ->getResult();

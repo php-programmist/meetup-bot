@@ -19,6 +19,18 @@ class PollRepository extends ServiceEntityRepository
         parent::__construct($registry, Poll::class);
     }
 
+    public function findOpened(): ?Poll
+    {
+        $result = $this->createQueryBuilder('p')
+            ->andWhere('p.finishedAt is null')
+            ->orderBy('p.id', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult()
+            ;
+        return $result[0] ?? null;
+    }
+
     // /**
     //  * @return Poll[] Returns an array of Poll objects
     //  */

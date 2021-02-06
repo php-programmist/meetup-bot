@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Member;
 use App\Entity\Poll;
+use DateTime;
 use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -144,8 +145,41 @@ class TelegramApiManager
         }
     }
 
+    /**
+     * @throws TelegramSDKException
+     */
     public function sendResumeMessage(): void
     {
+        $this->finishPoll();
+
+        $this->telegram->sendMessage([
+            'chat_id' => $this->telegramChatId,
+            'text' => sprintf(self::MESSAGE_RESUME, $this->getPresentMessage()),
+            'reply_markup' => Keyboard::remove()
+        ]);
+    }
+
+    private function getPresentMessage():string
+    {
+        $present = $this->entityManager
+            ->getRepository(Member::class)
+            ->getPresent();
+
+        if (empty($present)) {
+            return '';
+        }
+
+        //перемешиваем список присутствующих
+        shuffle($present);
+
+        $message = self::MESSAGE_RESUME_PRESENT_ORDER.PHP_EOL;
+
+        /** @var Member $member */
+        foreach ($present as $key => $member) {
+            $message.=$key+1;
+            $message.='.'.$member->getFullName().PHP_EOL;
+        }
+        return $message;
     }
 
     private function savePoll(int $messageId): void
@@ -222,5 +256,23 @@ class TelegramApiManager
             $message .= sprintf('@%s, ', $member->getUsername());
         }
         return sprintf(self::MESSAGE_NOTIFICATION, $message);
+    }
+
+    private function finishPoll(): void
+    {
+        try {
+            /** @var Poll $poll */
+            $poll = $this->entityManager->getRepository(Poll::class)->findOpened();
+            if (null === $poll) {
+                return;
+            }
+            $this->telegram->stopPoll([
+                'chat_id' => $this->telegramChatId,
+                'message_id' => $poll->getMessageId()
+            ]);
+            $poll->setFinishedAt(new DateTime());
+            $this->entityManager->flush();
+        } catch (TelegramSDKException $e) {
+        }
     }
 }
