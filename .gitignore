@@ -10,3 +10,5 @@
 /vendor/
 ###< symfony/framework-bundle ###
 /.idea/
+/.htaccess
+/public/.htaccess
