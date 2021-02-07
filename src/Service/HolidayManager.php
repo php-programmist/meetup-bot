@@ -71,4 +71,14 @@ class HolidayManager
 
         return $holiday;
     }
+
+    public function isTodayHoliday():bool
+    {
+        $today = (new DateTime())->modify('midnight');
+        $holiday = $this->entityManager
+            ->getRepository(Holiday::class)
+            ->findOneBy(['date' => $today]);
+
+        return null !== $holiday;
+    }
 }

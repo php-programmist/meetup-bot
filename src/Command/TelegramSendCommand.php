@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Service\HolidayManager;
 use App\Service\TelegramApiManager;
 use LogicException;
 use Psr\Log\LoggerInterface;
@@ -30,18 +31,24 @@ class TelegramSendCommand extends Command
      * @var LoggerInterface
      */
     private $logger;
+    /**
+     * @var HolidayManager
+     */
+    private $holidayManager;
 
     /**
      * @param TelegramApiManager $telegramApiManager
      * @param LoggerInterface $logger
+     * @param HolidayManager $holidayManager
      * @param string|null $name
      */
-    public function __construct(TelegramApiManager $telegramApiManager, LoggerInterface $logger,string $name = null)
+    public function __construct(TelegramApiManager $telegramApiManager, LoggerInterface $logger, HolidayManager $holidayManager,string $name = null)
     {
         $this->telegramApiManager = $telegramApiManager;
 
         parent::__construct($name);
         $this->logger = $logger;
+        $this->holidayManager = $holidayManager;
     }
 
     protected static $defaultName = 'app:telegram:send';
@@ -58,6 +65,11 @@ class TelegramSendCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $type = $input->getArgument('type');
+
+        if ($this->holidayManager->isTodayHoliday()) {
+            $io->warning('Today is holiday. Message not send');
+            return Command::SUCCESS;
+        }
 
         try {
             switch ($type) {
