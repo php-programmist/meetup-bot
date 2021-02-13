@@ -20,13 +20,39 @@ class MemberManager
         $this->entityManager = $entityManager;
     }
 
-    public function findOrFail(string $username):Member
+    public function findOrFail(string $username): Member
     {
-        $member = $this->entityManager->getRepository(Member::class)->findOneBy(['username'=>$username]);
+        $member = $this->entityManager->getRepository(Member::class)->findOneBy(['username' => $username]);
         if (null === $member) {
-            throw new RuntimeException(sprintf('Member with username %s not found',$username));
+            throw new RuntimeException(sprintf('Member with username %s not found', $username));
         }
 
         return $member;
+    }
+
+    /**
+     * @return Member[]|array
+     */
+    public function getMembers(): array
+    {
+        return $this->entityManager
+            ->getRepository(Member::class)
+            ->findBy([], ['id' => 'asc']);
+    }
+
+    public function addMember(string $fullName, string $username): void
+    {
+        $member = (new Member())
+            ->setFullName($fullName)
+            ->setUsername($username);
+        $this->entityManager->persist($member);
+        $this->entityManager->flush();
+    }
+
+    public function removeMember($username): void
+    {
+        $member = $this->findOrFail($username);
+        $this->entityManager->remove($member);
+        $this->entityManager->flush();
     }
 }
