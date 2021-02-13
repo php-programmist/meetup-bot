@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command;
+namespace App\Command\Holiday;
 
 use App\Service\HolidayManager;
 use Symfony\Component\Console\Command\Command;

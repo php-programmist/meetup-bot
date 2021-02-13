@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command;
+namespace App\Command\Holiday;
 
 use App\Service\HolidayManager;
 use Symfony\Component\Console\Command\Command;
@@ -9,9 +9,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-class HolidayWatchCommand extends Command
+class HolidayShowCommand extends Command
 {
-    protected static $defaultName = 'app:holiday:watch';
+    protected static $defaultName = 'app:holiday:show';
     /**
      * @var HolidayManager
      */
