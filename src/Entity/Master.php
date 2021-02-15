@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\MasterRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -32,6 +34,16 @@ class Master
      * @ORM\Column(type="integer", options={"default": 0})
      */
     private $ordering = 0;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Rating::class, mappedBy="master", orphanRemoval=true)
+     */
+    private $ratings;
+
+    public function __construct()
+    {
+        $this->ratings = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -70,6 +82,36 @@ class Master
     public function setOrdering(int $ordering): self
     {
         $this->ordering = $ordering;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Rating[]
+     */
+    public function getRatings(): Collection
+    {
+        return $this->ratings;
+    }
+
+    public function addRating(Rating $rating): self
+    {
+        if (!$this->ratings->contains($rating)) {
+            $this->ratings[] = $rating;
+            $rating->setMaster($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRating(Rating $rating): self
+    {
+        if ($this->ratings->removeElement($rating)) {
+            // set the owning side to null (unless already changed)
+            if ($rating->getMaster() === $this) {
+                $rating->setMaster(null);
+            }
+        }
 
         return $this;
     }
