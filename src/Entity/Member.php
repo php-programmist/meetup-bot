@@ -34,6 +34,11 @@ class Member
      */
     private $messages;
 
+    /**
+     * @ORM\OneToOne(targetEntity=Master::class, mappedBy="member", cascade={"persist", "remove"})
+     */
+    private $master;
+
     public function __construct()
     {
         $this->messages = new ArrayCollection();
@@ -94,6 +99,23 @@ class Member
                 $message->setMember(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getMaster(): ?Master
+    {
+        return $this->master;
+    }
+
+    public function setMaster(Master $master): self
+    {
+        // set the owning side of the relation if necessary
+        if ($master->getMember() !== $this) {
+            $master->setMember($this);
+        }
+
+        $this->master = $master;
 
         return $this;
     }
