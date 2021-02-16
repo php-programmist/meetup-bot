@@ -1,4 +1,6 @@
 form:
+  master:
+    label: Ведущий
   evaluator:
     label: Оценивающий
   inTime:

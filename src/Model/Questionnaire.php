@@ -4,6 +4,7 @@
 namespace App\Model;
 
 
+use App\Entity\Master;
 use App\Entity\Member;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -16,6 +17,13 @@ class Questionnaire
         self::ANSWER_YES => 1,
         self::ANSWER_NO => 0,
     ];
+
+    /**
+     * @var Master
+     * @Assert\NotNull()
+     */
+    private $master;
+
     /**
      * @var Member
      * @Assert\NotNull()
@@ -174,6 +182,24 @@ class Questionnaire
             + (int)$this->isActiveModeration()
             + ((int)$this->isImpression() * 2);
 
+    }
+
+    /**
+     * @return Master
+     */
+    public function getMaster(): Master
+    {
+        return $this->master;
+    }
+
+    /**
+     * @param Master $master
+     * @return $this
+     */
+    public function setMaster(Master $master): self
+    {
+        $this->master = $master;
+        return $this;
     }
 
 }

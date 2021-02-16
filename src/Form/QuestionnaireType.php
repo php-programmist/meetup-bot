@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Master;
 use App\Entity\Member;
 use App\Model\Questionnaire;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -15,6 +16,11 @@ class QuestionnaireType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
+            ->add('master',EntityType::class,[
+                'class' => Master::class,
+                'required' => true,
+                'placeholder' => 'Не выбран',
+            ])
             ->add('evaluator',EntityType::class,[
                 'class' => Member::class,
                 'required' => true,

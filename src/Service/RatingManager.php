@@ -21,21 +21,15 @@ class RatingManager
      * @var NormalizerInterface
      */
     private $normalizer;
-    /**
-     * @var MasterManager
-     */
-    private $masterManager;
 
     /**
      * @param EntityManagerInterface $entityManager
      * @param NormalizerInterface $normalizer
-     * @param MasterManager $masterManager
      */
-    public function __construct(EntityManagerInterface $entityManager, NormalizerInterface $normalizer,MasterManager $masterManager)
+    public function __construct(EntityManagerInterface $entityManager, NormalizerInterface $normalizer)
     {
         $this->entityManager = $entityManager;
         $this->normalizer = $normalizer;
-        $this->masterManager = $masterManager;
     }
 
     /**
@@ -47,13 +41,12 @@ class RatingManager
         $details = $this->normalizer->normalize($questionnaire,null,[
             AbstractNormalizer::GROUPS => ['details']
         ]);
-        $activeMaster = $this->masterManager->getActiveMaster();
 
         $rating = (new Rating())
+            ->setMaster($questionnaire->getMaster())
             ->setMember($questionnaire->getEvaluator())
             ->setScore($questionnaire->getScore())
-            ->setDetails($details)
-            ->setMaster($activeMaster);
+            ->setDetails($details);
 
         $this->entityManager->persist($rating);
         $this->entityManager->flush();
