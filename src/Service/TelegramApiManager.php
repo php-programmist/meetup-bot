@@ -11,6 +11,8 @@ use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Telegram\Bot\Keyboard\Keyboard;
@@ -28,6 +30,7 @@ class TelegramApiManager
     public const MESSAGE_RESUME = 'Митап начнется через несколько минут! Пора подключаться! %s';
     public const MESSAGE_RESUME_PRESENT_ORDER = 'Порядок выступления:';
     public const MESSAGE_NOTIFICATION = '%sВас ждать сегодня?';
+    public const MESSAGE_QUESTIONNAIRE = '%s - Пожалуйста, оцените работу скрам-мастера';
     /**
      * @var Api
      */
@@ -51,19 +54,19 @@ class TelegramApiManager
     /**
      * @var string
      */
-    private $telegramWebhook;
-    /**
-     * @var string
-     */
     private $telegramWebhookToken;
+    /**
+     * @var RouterInterface
+     */
+    private $router;
 
     /**
      * @param Api $telegram
      * @param EntityManagerInterface $entityManager
      * @param MessageManager $messageManager
      * @param LoggerInterface $logger
+     * @param RouterInterface $router
      * @param string $telegramChatId
-     * @param string $telegramWebhook
      * @param string $telegramWebhookToken
      */
     public function __construct(
@@ -71,8 +74,8 @@ class TelegramApiManager
         EntityManagerInterface $entityManager,
         MessageManager $messageManager,
         LoggerInterface $logger,
+        RouterInterface $router,
         string $telegramChatId,
-        string $telegramWebhook,
         string $telegramWebhookToken
     ) {
         $this->telegram = $telegram;
@@ -80,8 +83,8 @@ class TelegramApiManager
         $this->entityManager = $entityManager;
         $this->messageManager = $messageManager;
         $this->logger = $logger;
-        $this->telegramWebhook = $telegramWebhook;
         $this->telegramWebhookToken = $telegramWebhookToken;
+        $this->router = $router;
     }
 
     /**
@@ -141,7 +144,7 @@ class TelegramApiManager
             $this->handlePollUpdate($update);
             $this->handleMessageUpdate($update);
         } catch (Throwable $e) {
-            $this->logger->error('Telegram webhook error: ' . $e->getMessage().'. Trace:'.$e->getTraceAsString());
+            $this->logger->error('Telegram webhook error: ' . $e->getMessage() . '. Trace:' . $e->getTraceAsString());
         }
     }
 
@@ -159,7 +162,20 @@ class TelegramApiManager
         ]);
     }
 
-    private function getPresentMessage():string
+    /**
+     * @throws TelegramSDKException
+     */
+    public function sendQuestionnaireMessage(): void
+    {
+        $url = $this->router->generate('questionnaire', [], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        $this->telegram->sendMessage([
+            'chat_id' => $this->telegramChatId,
+            'text' => sprintf(self::MESSAGE_QUESTIONNAIRE, $url),
+        ]);
+    }
+
+    private function getPresentMessage(): string
     {
         $present = $this->entityManager
             ->getRepository(Member::class)
@@ -172,12 +188,12 @@ class TelegramApiManager
         //перемешиваем список присутствующих
         shuffle($present);
 
-        $message = self::MESSAGE_RESUME_PRESENT_ORDER.PHP_EOL;
+        $message = self::MESSAGE_RESUME_PRESENT_ORDER . PHP_EOL;
 
         /** @var Member $member */
         foreach ($present as $key => $member) {
-            $message.=$key+1;
-            $message.='.'.$member->getFullName().PHP_EOL;
+            $message .= $key + 1;
+            $message .= '.' . $member->getFullName() . PHP_EOL;
         }
         return $message;
     }
@@ -237,10 +253,13 @@ class TelegramApiManager
      */
     public function setupWebhook(): void
     {
-        $this->telegram->setWebhook(['url' => $this->telegramWebhook.$this->telegramWebhookToken]);
+        $url = $this->router->generate('webhook', ['token' => $this->telegramWebhookToken],
+            UrlGeneratorInterface::ABSOLUTE_URL);
+
+        $this->telegram->setWebhook(['url' => $url]);
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
-            'text' => 'Webhook set successful'
+            'text' => 'Webhook set successful - ' . $url
         ]);
     }
 

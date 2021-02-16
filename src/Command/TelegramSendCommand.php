@@ -18,10 +18,12 @@ class TelegramSendCommand extends Command
     public const TYPE_INITIAL = 'initial';
     public const TYPE_NOTIFICATION = 'notification';
     public const TYPE_RESUME = 'resume';
+    public const QUESTIONNAIRE = 'questionnaire';
     public const TYPES = [
         self::TYPE_INITIAL,
         self::TYPE_NOTIFICATION,
         self::TYPE_RESUME,
+        self::QUESTIONNAIRE,
     ];
     /**
      * @var TelegramApiManager
@@ -81,6 +83,9 @@ class TelegramSendCommand extends Command
                     break;
                 case self::TYPE_RESUME:
                     $this->telegramApiManager->sendResumeMessage();
+                    break;
+                case self::QUESTIONNAIRE:
+                    $this->telegramApiManager->sendQuestionnaireMessage();
                     break;
                 default:
                     throw new LogicException(sprintf('%s - is wrong type. Available types: %s',
