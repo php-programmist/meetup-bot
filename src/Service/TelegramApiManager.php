@@ -31,6 +31,7 @@ class TelegramApiManager
     public const MESSAGE_RESUME_PRESENT_ORDER = 'Порядок выступления:';
     public const MESSAGE_NOTIFICATION = '%sВас ждать сегодня?';
     public const MESSAGE_QUESTIONNAIRE = '%s - Пожалуйста, оцените работу скрам-мастера';
+    public const MESSAGE_NEXT_MASTER = 'На следующей неделе ведущим будет %s';
     /**
      * @var Api
      */
@@ -59,6 +60,10 @@ class TelegramApiManager
      * @var RouterInterface
      */
     private $router;
+    /**
+     * @var MasterManager
+     */
+    private $masterManager;
 
     /**
      * @param Api $telegram
@@ -66,6 +71,7 @@ class TelegramApiManager
      * @param MessageManager $messageManager
      * @param LoggerInterface $logger
      * @param RouterInterface $router
+     * @param MasterManager $masterManager
      * @param string $telegramChatId
      * @param string $telegramWebhookToken
      */
@@ -75,6 +81,7 @@ class TelegramApiManager
         MessageManager $messageManager,
         LoggerInterface $logger,
         RouterInterface $router,
+        MasterManager $masterManager,
         string $telegramChatId,
         string $telegramWebhookToken
     ) {
@@ -85,6 +92,7 @@ class TelegramApiManager
         $this->logger = $logger;
         $this->telegramWebhookToken = $telegramWebhookToken;
         $this->router = $router;
+        $this->masterManager = $masterManager;
     }
 
     /**
@@ -169,9 +177,13 @@ class TelegramApiManager
     {
         $url = $this->router->generate('questionnaire', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
+        $message = sprintf(self::MESSAGE_QUESTIONNAIRE, $url);
+
+        $message = $this->addNextMasterMessage($message);
+
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
-            'text' => sprintf(self::MESSAGE_QUESTIONNAIRE, $url),
+            'text' => sprintf($message),
         ]);
     }
 
@@ -293,5 +305,22 @@ class TelegramApiManager
             $this->entityManager->flush();
         } catch (TelegramSDKException $e) {
         }
+    }
+
+    /**
+     * @param string $message
+     * @return string
+     */
+    private function addNextMasterMessage(string $message): string
+    {
+        if (date("l") === 'Friday') {
+            try {
+                $nextMaster = $this->masterManager->getNextMaster();
+                $message .= PHP_EOL . sprintf(self::MESSAGE_NEXT_MASTER, $nextMaster->getMember()->getFullName());
+            } catch (Throwable $e) {
+                $this->logger->error($e->getMessage());
+            }
+        }
+        return $message;
     }
 }

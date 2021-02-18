@@ -31,4 +31,18 @@ class MasterManager
         }
         return $master;
     }
+
+    public function getNextMaster():Master
+    {
+        $activeMaster = $this->getActiveMaster();
+        $masterRepository = $this->entityManager->getRepository(Master::class);
+        $master = $masterRepository->findNextMaster($activeMaster);
+        if (null === $master) {
+            $master = $masterRepository->findFirstMaster();
+        }
+        if (null === $master) {
+            throw new LogicException('Next master could not be found');
+        }
+        return $master;
+    }
 }

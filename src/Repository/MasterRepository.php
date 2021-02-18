@@ -19,6 +19,30 @@ class MasterRepository extends ServiceEntityRepository
         parent::__construct($registry, Master::class);
     }
 
+    public function findNextMaster(Master $master): ?Master
+    {
+        $result = $this->createQueryBuilder('m')
+            ->andWhere('m.ordering > :ordering')
+            ->setParameter('ordering', $master->getOrdering())
+            ->orderBy('m.ordering')
+            ->getQuery()
+            ->setMaxResults(1)
+            ->getResult();
+
+        return $result[0] ?? null;
+    }
+
+    public function findFirstMaster(): ?Master
+    {
+        $result = $this->createQueryBuilder('m')
+            ->orderBy('m.ordering')
+            ->getQuery()
+            ->setMaxResults(1)
+            ->getResult();
+
+        return $result[0] ?? null;
+    }
+
     // /**
     //  * @return Master[] Returns an array of Master objects
     //  */
