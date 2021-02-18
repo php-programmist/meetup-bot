@@ -35,35 +35,35 @@ class Questionnaire
      * @Assert\NotNull()
      * @Groups({"details"})
      */
-    private $inTime;
+    private $inTime = true;
 
     /**
      * @var bool
      * @Assert\NotNull()
      * @Groups({"details"})
      */
-    private $askedQuestions;
+    private $askedQuestions = true;
 
     /**
      * @var bool
      * @Assert\NotNull()
      * @Groups({"details"})
      */
-    private $timeControl;
+    private $timeControl = true;
 
     /**
      * @var bool
      * @Assert\NotNull()
      * @Groups({"details"})
      */
-    private $activeModeration;
+    private $activeModeration = true;
 
     /**
      * @var bool
      * @Assert\NotNull()
      * @Groups({"details"})
      */
-    private $impression;
+    private $impression = true;
 
     /**
      * @return Member
