@@ -45,4 +45,9 @@ class MasterManager
         }
         return $master;
     }
+
+    public function getRatingData():array
+    {
+        return $this->entityManager->getRepository(Master::class)->getRatingData();
+    }
 }

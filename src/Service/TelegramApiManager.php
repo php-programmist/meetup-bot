@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Member;
 use App\Entity\Poll;
+use App\TelegramCommand\RatingCommand;
 use DateTime;
 use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
@@ -64,6 +65,10 @@ class TelegramApiManager
      * @var MasterManager
      */
     private $masterManager;
+    /**
+     * @var RatingCommand
+     */
+    private $ratingCommand;
 
     /**
      * @param Api $telegram
@@ -72,6 +77,7 @@ class TelegramApiManager
      * @param LoggerInterface $logger
      * @param RouterInterface $router
      * @param MasterManager $masterManager
+     * @param RatingCommand $ratingCommand
      * @param string $telegramChatId
      * @param string $telegramWebhookToken
      */
@@ -82,6 +88,7 @@ class TelegramApiManager
         LoggerInterface $logger,
         RouterInterface $router,
         MasterManager $masterManager,
+        RatingCommand $ratingCommand,
         string $telegramChatId,
         string $telegramWebhookToken
     ) {
@@ -93,6 +100,7 @@ class TelegramApiManager
         $this->telegramWebhookToken = $telegramWebhookToken;
         $this->router = $router;
         $this->masterManager = $masterManager;
+        $this->ratingCommand = $ratingCommand;
     }
 
     /**
@@ -145,6 +153,7 @@ class TelegramApiManager
     public function handleUpdate(): void
     {
         try {
+            $this->addCommands();
             $update = $this->telegram->commandsHandler(true);
             if (null === $update) {
                 throw new RuntimeException('Update object is NULL');
@@ -316,11 +325,21 @@ class TelegramApiManager
         if (date("l") === 'Friday') {
             try {
                 $nextMaster = $this->masterManager->getNextMaster();
-                $message .= PHP_EOL . sprintf(self::MESSAGE_NEXT_MASTER, $nextMaster->getMember()->getFullName());
+                $message .= PHP_EOL . sprintf(self::MESSAGE_NEXT_MASTER, $nextMaster->getMember());
             } catch (Throwable $e) {
                 $this->logger->error($e->getMessage());
             }
         }
         return $message;
+    }
+
+    /**
+     * @throws TelegramSDKException
+     */
+    private function addCommands(): void
+    {
+        $this->telegram->addCommands([
+            $this->ratingCommand,
+        ]);
     }
 }

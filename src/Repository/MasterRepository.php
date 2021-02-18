@@ -43,6 +43,22 @@ class MasterRepository extends ServiceEntityRepository
         return $result[0] ?? null;
     }
 
+    public function getRatingData():array
+    {
+        return $this->createQueryBuilder('master')
+            ->select('m.fullName')
+            ->addSelect('coalesce(avg(ratings.score),0) as score')
+            ->addSelect('count(ratings.score) as votes')
+            ->join('master.member','m')
+            ->leftJoin('master.ratings','ratings')
+            ->groupBy('m.fullName')
+            ->orderBy('score','desc')
+            ->addOrderBy('votes','desc')
+            ->getQuery()
+            ->getResult();
+
+    }
+
     // /**
     //  * @return Master[] Returns an array of Master objects
     //  */
