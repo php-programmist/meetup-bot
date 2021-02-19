@@ -25,6 +25,7 @@ class MasterRepository extends ServiceEntityRepository
             ->andWhere('m.ordering > :ordering')
             ->setParameter('ordering', $master->getOrdering())
             ->orderBy('m.ordering')
+            ->addOrderBy('m.id')
             ->getQuery()
             ->setMaxResults(1)
             ->getResult();

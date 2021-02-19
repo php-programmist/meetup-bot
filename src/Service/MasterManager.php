@@ -46,6 +46,19 @@ class MasterManager
         return $master;
     }
 
+    public function changeMaster():Master
+    {
+        $activeMaster = $this->getActiveMaster();
+        $activeMaster->setActive(false);
+
+        $nextMaster = $this->getNextMaster();
+        $nextMaster->setActive(true);
+
+        $this->entityManager->flush();
+
+        return $nextMaster;
+    }
+
     public function getRatingData():array
     {
         return $this->entityManager->getRepository(Master::class)->getRatingData();

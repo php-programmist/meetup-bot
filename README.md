@@ -64,10 +64,15 @@ php bin/console app:holiday:show
 0 11 * * 1-5 php /path/to/folder/bin/console app:telegram:send initial
 20 11 * * 1-5 php /path/to/folder/bin/console app:telegram:send notification
 27 11 * * 1-5 php /path/to/folder/bin/console app:telegram:send resume
-00 12 * * 1-5 php /path/to/folder/bin/console app:telegram:send questionnaire
+0 12 * * 1-5 php /path/to/folder/bin/console app:telegram:send questionnaire
+0 8 * * 1 php /path/to/folder/bin/console app:master:change
 ```
 В 11:00 будет отправлено сообщение с опросом
 
 В 11:20 - напоминание о необходимости ответа, если кто-то из участников еще не дал ответ на этот момент
 
 В 11:27 - итоговый список участников с порядком выступления
+
+В 12:00 - ссылка на оценивание Scrum-мастера. А по пятницам будет также указываться следующий Scrum-мастер
+
+В 8:00 по понедельникам будет происходить смена Scrum-мастера (новый мастер будет выбран по умолчанию в опроснике оценивания мастера)

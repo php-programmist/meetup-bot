@@ -48,6 +48,7 @@ class Member
     {
         $this->messages = new ArrayCollection();
         $this->ratings = new ArrayCollection();
+        $this->master = (new Master())->setMember($this);
     }
 
     public function getId(): ?int
