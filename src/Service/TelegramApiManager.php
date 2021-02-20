@@ -252,11 +252,11 @@ class TelegramApiManager
         }
 
         $updateId = $update->get('update_id');
-        $text = $message->get('text');
+        $text = trim($message->get('text'));
         $username = $message->get('from')->get('username');
         $date = $message->get('date');
 
-        if (empty($text) || empty($username) || null === $updateId) {
+        if (null === $updateId || empty($username) || !in_array($text,self::ANSWERS)) {
             return;
         }
 
