@@ -10,6 +10,10 @@ use Telegram\Bot\Commands\Command;
 class RatingCommand extends Command
 {
     protected $name = 'rating';
+    /**
+     * @var string Command Description
+     */
+    protected $description = 'Отображает таблицу с текущим рейтингом Scrum-мастеров';
 
     private $masterManager;
 

@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\Member;
 use App\Entity\Poll;
 use App\TelegramCommand\RatingCommand;
+use App\TelegramCommand\StartCommand;
 use DateTime;
 use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
@@ -340,6 +341,7 @@ class TelegramApiManager
     {
         $this->telegram->addCommands([
             $this->ratingCommand,
+            StartCommand::class,
         ]);
     }
 }
