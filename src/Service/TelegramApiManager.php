@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\Master;
 use App\Entity\Member;
 use App\Entity\Poll;
 use App\TelegramCommand\RatingCommand;
@@ -34,6 +35,7 @@ class TelegramApiManager
     public const MESSAGE_NOTIFICATION = '%sВас ждать сегодня?';
     public const MESSAGE_QUESTIONNAIRE = '%s - Пожалуйста, оцените работу скрам-мастера';
     public const MESSAGE_NEXT_MASTER = 'На следующей неделе ведущим будет %s';
+    public const NEW_MATER_MESSAGE = 'Ведущий на этой неделе - %s';
     /**
      * @var Api
      */
@@ -282,6 +284,18 @@ class TelegramApiManager
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
             'text' => 'Webhook set successful - ' . $url
+        ]);
+    }
+
+    /**
+     * @param Master $newMaster
+     * @throws TelegramSDKException
+     */
+    public function sendNewMasterMessage(Master $newMaster): void
+    {
+        $this->telegram->sendMessage([
+            'chat_id' => $this->telegramChatId,
+            'text' => sprintf(self::NEW_MATER_MESSAGE,$newMaster),
         ]);
     }
 

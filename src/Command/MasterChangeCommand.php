@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Service\MasterManager;
+use App\Service\TelegramApiManager;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,9 +23,20 @@ class MasterChangeCommand extends Command
      * @var LoggerInterface
      */
     private $logger;
+    /**
+     * @var TelegramApiManager
+     */
+    private $telegramApiManager;
 
+    /**
+     * @param MasterManager $masterManager
+     * @param TelegramApiManager $telegramApiManager
+     * @param LoggerInterface $logger
+     * @param string|null $name
+     */
     public function __construct(
         MasterManager $masterManager,
+        TelegramApiManager $telegramApiManager,
         LoggerInterface $logger,
         string $name = null
     )
@@ -32,6 +44,7 @@ class MasterChangeCommand extends Command
         parent::__construct($name);
         $this->masterManager = $masterManager;
         $this->logger = $logger;
+        $this->telegramApiManager = $telegramApiManager;
     }
 
 
@@ -48,6 +61,7 @@ class MasterChangeCommand extends Command
 
         try {
             $newMaster = $this->masterManager->changeMaster();
+            $this->telegramApiManager->sendNewMasterMessage($newMaster);
         } catch (Throwable $e) {
             $this->logger->error($e->getMessage());
             $io->error($e->getMessage());
