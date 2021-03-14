@@ -28,6 +28,16 @@ class TelegramApiManager
     public const ANSWER_NO = 'Нет';
     public const ANSWER_MAYBE = 'Возможно';
     public const ANSWERS = [self::ANSWER_YES, self::ANSWER_NO, self::ANSWER_MAYBE];
+    public const STICKERS = [
+        'CAACAgIAAxkBAAEJehxgTeVDkp42kybCBDhjELYSpkr93AACSgIAAladvQrJasZoYBh68B4E',
+        'CAACAgIAAxkBAAEJeiJgTed4VeEV4nRLGvoHB-0rlK5tgAAC3gADVp29CqXvdzhVgxXEHgQ',
+        'CAACAgIAAxkBAAEJeiRgTeeiR6mBJfNaFXtapuha90-9KAACTQADWbv8JSiBoG3dG4L3HgQ',
+        'CAACAgIAAxkBAAEJeiZgTefBzNPvZIJUGrXRI2rOYzFcdQACKQADJHFiGiKockiM5SMwHgQ',
+        'CAACAgIAAxkBAAEJeihgTefrwfhs_NWFh0Fy6KAYzG0h4AACGQADWbv8Ja1zjKUaUJOvHgQ',
+        'CAACAgIAAxkBAAEJeipgTeg2SKQOav8AAXuvcIG17WzVKKEAAnwDAAJHFWgJOQF6ZvTunlgeBA',
+        'CAACAgIAAxkBAAEJeixgTehcvRgWRK4jqJebo_7Yg4Cx8gACHwADlp-MDldYXcQNhO6MHgQ',
+        'CAACAgIAAxkBAAEJei5gTeh8Br-Iq1GzaqlvBrBPE0HUwwACHQADr8ZRGlyO-uEKz2-8HgQ',
+    ];
 
     public const MESSAGE_INITIAL = 'Всем привет! Митап начнется через 30 минут! Будете сегодня?';
     public const MESSAGE_RESUME = 'Митап начнется через несколько минут! Пора подключаться! %s';
@@ -35,7 +45,8 @@ class TelegramApiManager
     public const MESSAGE_NOTIFICATION = '%sВас ждать сегодня?';
     public const MESSAGE_QUESTIONNAIRE = '%s - Пожалуйста, оцените работу скрам-мастера';
     public const MESSAGE_NEXT_MASTER = 'На следующей неделе ведущим будет %s';
-    public const NEW_MATER_MESSAGE = 'Ведущий на этой неделе - %s';
+    public const NEW_MASTER_MESSAGE = 'Ведущий на этой неделе - %s';
+    public const MATER_WINNER_MESSAGE = 'Поздравляем победителя очередного раунда - %s';
     /**
      * @var Api
      */
@@ -72,6 +83,10 @@ class TelegramApiManager
      * @var RatingCommand
      */
     private $ratingCommand;
+    /**
+     * @var RoundManager
+     */
+    private $roundManager;
 
     /**
      * @param Api $telegram
@@ -81,6 +96,7 @@ class TelegramApiManager
      * @param RouterInterface $router
      * @param MasterManager $masterManager
      * @param RatingCommand $ratingCommand
+     * @param RoundManager $roundManager
      * @param string $telegramChatId
      * @param string $telegramWebhookToken
      */
@@ -92,6 +108,7 @@ class TelegramApiManager
         RouterInterface $router,
         MasterManager $masterManager,
         RatingCommand $ratingCommand,
+        RoundManager $roundManager,
         string $telegramChatId,
         string $telegramWebhookToken
     ) {
@@ -104,6 +121,7 @@ class TelegramApiManager
         $this->router = $router;
         $this->masterManager = $masterManager;
         $this->ratingCommand = $ratingCommand;
+        $this->roundManager = $roundManager;
     }
 
     /**
@@ -295,8 +313,31 @@ class TelegramApiManager
     {
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
-            'text' => sprintf(self::NEW_MATER_MESSAGE,$newMaster),
+            'text' => sprintf(self::NEW_MASTER_MESSAGE,$newMaster),
         ]);
+    }
+
+    /**
+     * @throws TelegramSDKException
+     */
+    public function sendFinishRoundMessage(): void
+    {
+        $rating = $this->masterManager->getRatingTable();
+        $winner = $this->masterManager->getWinner();
+        $this->telegram->sendSticker([
+            'chat_id' => $this->telegramChatId,
+            'sticker' => array_rand(array_flip(self::STICKERS)),
+        ]);
+        $this->telegram->sendMessage([
+            'chat_id' => $this->telegramChatId,
+            'text' => sprintf(self::MATER_WINNER_MESSAGE,$winner),
+        ]);
+        $this->telegram->sendMessage([
+            'chat_id' => $this->telegramChatId,
+            'text' => $rating,
+            'parse_mode' => 'html',
+        ]);
+        $this->roundManager->startNextRound($winner);
     }
 
     /**

@@ -4,7 +4,6 @@
 namespace App\TelegramCommand;
 
 use App\Service\MasterManager;
-use LucidFrame\Console\ConsoleTable;
 use Telegram\Bot\Commands\Command;
 
 class RatingCommand extends Command
@@ -25,20 +24,8 @@ class RatingCommand extends Command
 
     public function handle()
     {
-        $ratingData = $this->masterManager->getRatingData();
-        $table = new ConsoleTable();
-        $table
-            ->addHeader('Scrum-Мастер')
-            ->addHeader('Рейтинг');
-
-        foreach ($ratingData as $row) {
-            $table->addRow()
-                ->addColumn($row['fullName'])
-                ->addColumn(sprintf('%.2f (%d)', $row['score'], $row['votes']));
-        }
-        $output = $table->getTable();
         $this->replyWithMessage([
-            'text' => $output,
+            'text' => $this->masterManager->getRatingTable(),
             'parse_mode' => 'html',
         ]);
     }

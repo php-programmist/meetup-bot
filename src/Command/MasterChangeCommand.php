@@ -62,6 +62,9 @@ class MasterChangeCommand extends Command
         try {
             $newMaster = $this->masterManager->changeMaster();
             $this->telegramApiManager->sendNewMasterMessage($newMaster);
+            if ($newMaster->isFirstInRound()) {
+                $this->telegramApiManager->sendFinishRoundMessage();
+            }
         } catch (Throwable $e) {
             $this->logger->error($e->getMessage());
             $io->error($e->getMessage());
