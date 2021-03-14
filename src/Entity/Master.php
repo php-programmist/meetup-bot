@@ -40,6 +40,11 @@ class Master
      */
     private $ratings;
 
+    /**
+     * @ORM\Column(type="boolean", options={"default": false})
+     */
+    private $firstInRound = false;
+
     public function __construct()
     {
         $this->ratings = new ArrayCollection();
@@ -119,5 +124,23 @@ class Master
     public function __toString(): string
     {
         return (string)$this->getMember();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isFirstInRound(): bool
+    {
+        return $this->firstInRound;
+    }
+
+    /**
+     * @param bool $firstInRound
+     * @return $this
+     */
+    public function setFirstInRound(bool $firstInRound): self
+    {
+        $this->firstInRound = $firstInRound;
+        return $this;
     }
 }
