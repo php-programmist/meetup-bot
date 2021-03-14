@@ -45,9 +45,15 @@ class Master
      */
     private $firstInRound = false;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Round::class, mappedBy="winner")
+     */
+    private $roundsWon;
+
     public function __construct()
     {
         $this->ratings = new ArrayCollection();
+        $this->roundsWon = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -141,6 +147,36 @@ class Master
     public function setFirstInRound(bool $firstInRound): self
     {
         $this->firstInRound = $firstInRound;
+        return $this;
+    }
+
+    /**
+     * @return Collection|Round[]
+     */
+    public function getRoundsWon(): Collection
+    {
+        return $this->roundsWon;
+    }
+
+    public function addRoundsWon(Round $roundsWon): self
+    {
+        if (!$this->roundsWon->contains($roundsWon)) {
+            $this->roundsWon[] = $roundsWon;
+            $roundsWon->setWinner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRoundsWon(Round $roundsWon): self
+    {
+        if ($this->roundsWon->removeElement($roundsWon)) {
+            // set the owning side to null (unless already changed)
+            if ($roundsWon->getWinner() === $this) {
+                $roundsWon->setWinner(null);
+            }
+        }
+
         return $this;
     }
 }
