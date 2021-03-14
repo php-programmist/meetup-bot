@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\Master;
+use App\Entity\Round;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 
@@ -61,6 +62,8 @@ class MasterManager
 
     public function getRatingData():array
     {
-        return $this->entityManager->getRepository(Master::class)->getRatingData();
+        $startedRound = $this->entityManager->getRepository(Round::class)->findOneBy(['status'=>Round::STATUS_STARTED],['startedAt'=>'asc']);
+
+        return $this->entityManager->getRepository(Master::class)->getRatingData($startedRound);
     }
 }

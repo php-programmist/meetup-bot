@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Master;
+use App\Entity\Round;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -44,20 +45,26 @@ class MasterRepository extends ServiceEntityRepository
         return $result[0] ?? null;
     }
 
-    public function getRatingData():array
+    public function getRatingData(?Round $round): array
     {
-        return $this->createQueryBuilder('master')
+        $builder = $this->createQueryBuilder('master')
             ->select('m.fullName')
             ->addSelect('coalesce(avg(ratings.score),0) as score')
             ->addSelect('count(ratings.score) as votes')
-            ->join('master.member','m')
-            ->leftJoin('master.ratings','ratings')
+            ->join('master.member', 'm')
+            ->leftJoin('master.ratings', 'ratings')
             ->groupBy('m.fullName')
-            ->orderBy('score','desc')
-            ->addOrderBy('votes','desc')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('score', 'desc')
+            ->addOrderBy('votes', 'desc');
 
+        if (null !== $round) {
+            $builder
+                ->andWhere('ratings.createdAt > :startedAt')
+                ->setParameter('startedAt', $round->getStartedAt());
+        }
+
+        return $builder->getQuery()
+            ->getResult();
     }
 
     // /**
