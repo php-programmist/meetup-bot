@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Master;
 use App\Entity\Round;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -52,15 +53,17 @@ class MasterRepository extends ServiceEntityRepository
             ->addSelect('coalesce(avg(ratings.score),0) as score')
             ->addSelect('coalesce(count(ratings.score),0) as votes')
             ->join('master.member', 'm')
-            ->leftJoin('master.ratings', 'ratings')
             ->groupBy('m.id')
             ->orderBy('score', 'desc')
             ->addOrderBy('votes', 'desc');
 
         if (null !== $round) {
             $builder
-                ->andWhere('ratings.createdAt > :startedAt')
+                ->leftJoin('master.ratings', 'ratings', Join::WITH,'ratings.createdAt > :startedAt')
                 ->setParameter('startedAt', $round->getStartedAt());
+        }else{
+            $builder
+                ->leftJoin('master.ratings', 'ratings');
         }
 
         return $builder->getQuery()
