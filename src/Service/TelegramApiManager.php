@@ -40,7 +40,7 @@ class TelegramApiManager
     ];
 
     public const MESSAGE_INITIAL = 'Всем привет! Митап начнется через 30 минут! Будете сегодня?';
-    public const MESSAGE_RESUME = 'Митап начнется через несколько минут! Пора подключаться! %s';
+    public const MESSAGE_RESUME = 'Митап начнется через несколько минут! Пора подключаться! %s %s';
     public const MESSAGE_RESUME_PRESENT_ORDER = 'Порядок выступления:';
     public const MESSAGE_NOTIFICATION = '%sВас ждать сегодня?';
     public const MESSAGE_QUESTIONNAIRE = '%s - Пожалуйста, оцените работу скрам-мастера';
@@ -87,6 +87,10 @@ class TelegramApiManager
      * @var RoundManager
      */
     private $roundManager;
+    /**
+     * @var string
+     */
+    private $meetupUrl;
 
     /**
      * @param Api $telegram
@@ -110,7 +114,8 @@ class TelegramApiManager
         RatingCommand $ratingCommand,
         RoundManager $roundManager,
         string $telegramChatId,
-        string $telegramWebhookToken
+        string $telegramWebhookToken,
+        string $meetupUrl
     ) {
         $this->telegram = $telegram;
         $this->telegramChatId = $telegramChatId;
@@ -122,6 +127,7 @@ class TelegramApiManager
         $this->masterManager = $masterManager;
         $this->ratingCommand = $ratingCommand;
         $this->roundManager = $roundManager;
+        $this->meetupUrl = $meetupUrl;
     }
 
     /**
@@ -195,7 +201,7 @@ class TelegramApiManager
 
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
-            'text' => sprintf(self::MESSAGE_RESUME, $this->getPresentMessage()),
+            'text' => sprintf(self::MESSAGE_RESUME, PHP_EOL.$this->meetupUrl.PHP_EOL, $this->getPresentMessage()),
             'reply_markup' => Keyboard::remove()
         ]);
     }

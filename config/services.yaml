@@ -41,6 +41,7 @@ services:
     App\Service\TelegramApiManager:
         arguments:
             $telegramChatId: '%env(TELEGRAM_CHAT_ID)%'
+            $meetupUrl: '%env(MEETUP_URL)%'
 
 
     # add more service definitions when explicit configuration is needed
