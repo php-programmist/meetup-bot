@@ -26,6 +26,7 @@ class MasterRepository extends ServiceEntityRepository
         $result = $this->createQueryBuilder('m')
             ->andWhere('m.ordering > :ordering')
             ->setParameter('ordering', $master->getOrdering())
+            ->andWhere('m.disabled = 0')
             ->orderBy('m.ordering')
             ->addOrderBy('m.id')
             ->getQuery()
@@ -38,6 +39,7 @@ class MasterRepository extends ServiceEntityRepository
     public function findFirstMaster(): ?Master
     {
         $result = $this->createQueryBuilder('m')
+            ->andWhere('m.disabled = 0')
             ->orderBy('m.ordering')
             ->getQuery()
             ->setMaxResults(1)
@@ -53,6 +55,7 @@ class MasterRepository extends ServiceEntityRepository
             ->addSelect('coalesce(avg(ratings.score),0) as score')
             ->addSelect('coalesce(count(ratings.score),0) as votes')
             ->join('master.member', 'm')
+            ->andWhere('master.disabled = 0')
             ->groupBy('m.id')
             ->orderBy('score', 'desc')
             ->addOrderBy('votes', 'desc');

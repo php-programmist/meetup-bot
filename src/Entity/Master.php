@@ -50,6 +50,11 @@ class Master
      */
     private $roundsWon;
 
+    /**
+     * @ORM\Column(type="boolean", options={"default": false})
+     */
+    private $disabled = false;
+
     public function __construct()
     {
         $this->ratings = new ArrayCollection();
@@ -177,6 +182,24 @@ class Master
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDisabled(): bool
+    {
+        return $this->disabled;
+    }
+
+    /**
+     * @param bool $disabled
+     * @return $this
+     */
+    public function setDisabled(bool $disabled): self
+    {
+        $this->disabled = $disabled;
         return $this;
     }
 }
