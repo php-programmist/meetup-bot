@@ -7,7 +7,9 @@ use App\Entity\Poll;
 use App\Repository\MemberRepository;
 use App\Repository\PollRepository;
 use App\Service\MasterManager;
+use App\Service\MemberManager;
 use App\Service\MessageManager;
+use App\Service\RoundManager;
 use App\Service\TelegramApiManager;
 use App\TelegramCommand\RatingCommand;
 use Doctrine\DBAL\Exception;
@@ -17,6 +19,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
+use Telegram\Bot\Keyboard\Keyboard;
 use Telegram\Bot\Objects\Message as MessageObject;
 
 class TelegramApiManagerTest extends TestCase
@@ -52,8 +55,11 @@ class TelegramApiManagerTest extends TestCase
         $router = $this->createMock(RouterInterface::class);
         $masterManager = $this->createMock(MasterManager::class);
         $ratingCommand = $this->createMock(RatingCommand::class);
+        $roundManager = $this->createMock(RoundManager::class);
+        $memberManager = $this->createMock(MemberManager::class);
         $telegramChatId = '0';
         $telegramWebhookToken = '';
+        $meetupUrl = 'https://example.com';
 
         $telegramApiManager = new TelegramApiManager(
             $telegram,
@@ -63,8 +69,11 @@ class TelegramApiManagerTest extends TestCase
             $router,
             $masterManager,
             $ratingCommand,
+            $roundManager,
+            $memberManager,
             $telegramChatId,
-            $telegramWebhookToken
+            $telegramWebhookToken,
+            $meetupUrl
         );
 
         $telegramApiManager->sendInitialMessage();
@@ -104,8 +113,11 @@ class TelegramApiManagerTest extends TestCase
         $router = $this->createMock(RouterInterface::class);
         $masterManager = $this->createMock(MasterManager::class);
         $ratingCommand = $this->createMock(RatingCommand::class);
+        $roundManager = $this->createMock(RoundManager::class);
+        $memberManager = $this->createMock(MemberManager::class);
         $telegramChatId = '0';
         $telegramWebhookToken = '';
+        $meetupUrl = 'https://example.com';
 
         $telegramApiManager = new TelegramApiManager(
             $telegram,
@@ -115,8 +127,11 @@ class TelegramApiManagerTest extends TestCase
             $router,
             $masterManager,
             $ratingCommand,
+            $roundManager,
+            $memberManager,
             $telegramChatId,
-            $telegramWebhookToken
+            $telegramWebhookToken,
+            $meetupUrl
         );
 
         $telegramApiManager->sendNotificationMessage();
@@ -128,16 +143,18 @@ class TelegramApiManagerTest extends TestCase
      */
     public function sendResumeMessage(): void
     {
-        $member = $this->createMock(Member::class);
-        $member->expects(self::once())
-            ->method('getFullName')
-            ->willReturn('John Dow');
+        $presentMember = (new Member())->setFullName('John Dow');
+        $maybePresentMember = (new Member())->setFullName('Jane Dow');
 
-        $memberRepository = $this->createMock(MemberRepository::class);
-        $memberRepository
+        $memberManager = $this->createMock(MemberManager::class);
+        $memberManager
             ->expects(self::once())
-            ->method('getPresent')
-            ->willReturn([$member]);
+            ->method('getPresentMembers')
+            ->willReturn([$presentMember]);
+        $memberManager
+            ->expects(self::once())
+            ->method('getMaybePresentMembers')
+            ->willReturn([$maybePresentMember]);
 
         $poll = $this->createMock(Poll::class);
         $poll->expects(self::once())
@@ -151,27 +168,29 @@ class TelegramApiManagerTest extends TestCase
 
         $telegram = $this->createMock(Api::class);
         $telegram->expects(self::once())
-            ->method('sendMessage');
+            ->method('sendMessage')
+            ->with($this->equalTo([
+                'chat_id' => '0',
+                'text' => "Митап начнется через несколько минут! Пора подключаться! \r\nhttps://example.com\r\n Порядок выступления:\r\n1.John Dow\r\n2.?Jane Dow?\r\n",
+                'reply_markup' => Keyboard::remove()
+            ]));
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
 
-        $map = [
-            [Poll::class,$pollRepository],
-            [Member::class,$memberRepository],
-        ];
-
         $entityManager
             ->method('getRepository')
-            ->willReturnMap($map);
+            ->willReturn($pollRepository);
 
         $messageManager = $this->createMock(MessageManager::class);
 
         $logger = $this->createMock(LoggerInterface::class);
         $router = $this->createMock(RouterInterface::class);
         $masterManager = $this->createMock(MasterManager::class);
+        $roundManager = $this->createMock(RoundManager::class);
         $ratingCommand = $this->createMock(RatingCommand::class);
         $telegramChatId = '0';
         $telegramWebhookToken = '';
+        $meetupUrl = 'https://example.com';
 
         $telegramApiManager = new TelegramApiManager(
             $telegram,
@@ -181,8 +200,11 @@ class TelegramApiManagerTest extends TestCase
             $router,
             $masterManager,
             $ratingCommand,
+            $roundManager,
+            $memberManager,
             $telegramChatId,
-            $telegramWebhookToken
+            $telegramWebhookToken,
+            $meetupUrl
         );
 
         $telegramApiManager->sendResumeMessage();

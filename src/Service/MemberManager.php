@@ -55,4 +55,24 @@ class MemberManager
         $this->entityManager->remove($member);
         $this->entityManager->flush();
     }
+
+    /**
+     * @return Member[]|array
+     */
+    public function getPresentMembers():array
+    {
+        return $this->entityManager
+            ->getRepository(Member::class)
+            ->findWithLastAnswer(TelegramApiManager::ANSWER_YES);
+    }
+
+    /**
+     * @return Member[]|array
+     */
+    public function getMaybePresentMembers():array
+    {
+        return $this->entityManager
+            ->getRepository(Member::class)
+            ->findWithLastAnswer(TelegramApiManager::ANSWER_MAYBE);
+    }
 }

@@ -91,6 +91,10 @@ class TelegramApiManager
      * @var string
      */
     private $meetupUrl;
+    /**
+     * @var MemberManager
+     */
+    private $memberManager;
 
     /**
      * @param Api $telegram
@@ -113,6 +117,7 @@ class TelegramApiManager
         MasterManager $masterManager,
         RatingCommand $ratingCommand,
         RoundManager $roundManager,
+        MemberManager $memberManager,
         string $telegramChatId,
         string $telegramWebhookToken,
         string $meetupUrl
@@ -128,6 +133,7 @@ class TelegramApiManager
         $this->ratingCommand = $ratingCommand;
         $this->roundManager = $roundManager;
         $this->meetupUrl = $meetupUrl;
+        $this->memberManager = $memberManager;
     }
 
     /**
@@ -201,7 +207,7 @@ class TelegramApiManager
 
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
-            'text' => sprintf(self::MESSAGE_RESUME, PHP_EOL.$this->meetupUrl.PHP_EOL, $this->getPresentMessage()),
+            'text' => sprintf(self::MESSAGE_RESUME, PHP_EOL . $this->meetupUrl . PHP_EOL, $this->getPresentMessage()),
             'reply_markup' => Keyboard::remove()
         ]);
     }
@@ -225,24 +231,35 @@ class TelegramApiManager
 
     private function getPresentMessage(): string
     {
-        $present = $this->entityManager
-            ->getRepository(Member::class)
-            ->getPresent();
+        $present = $this->memberManager->getPresentMembers();
+        $maybePresent = $this->memberManager->getMaybePresentMembers();
 
-        if (empty($present)) {
+        if (empty($present) && empty($maybePresent)) {
             return '';
         }
 
-        //перемешиваем список присутствующих
-        shuffle($present);
-
         $message = self::MESSAGE_RESUME_PRESENT_ORDER . PHP_EOL;
+        $indexNumber = 1;
 
-        /** @var Member $member */
-        foreach ($present as $key => $member) {
-            $message .= $key + 1;
-            $message .= '.' . $member->getFullName() . PHP_EOL;
+        if (!empty($present)) {
+            //перемешиваем список присутствующих
+            shuffle($present);
+
+            /** @var Member $member */
+            foreach ($present as $member) {
+                $message .= sprintf("%d.%s%s", $indexNumber, $member->getFullName(), PHP_EOL);
+                $indexNumber++;
+            }
         }
+
+        if (!empty($maybePresent)) {
+            /** @var Member $member */
+            foreach ($maybePresent as $member) {
+                $message .= sprintf('%d.?%s?%s', $indexNumber, $member->getFullName(), PHP_EOL);
+                $indexNumber++;
+            }
+        }
+
         return $message;
     }
 
@@ -283,7 +300,7 @@ class TelegramApiManager
         $username = $message->get('from')->get('username');
         $date = $message->get('date');
 
-        if (null === $updateId || empty($username) || !in_array($text,self::ANSWERS)) {
+        if (null === $updateId || empty($username) || !in_array($text, self::ANSWERS)) {
             return;
         }
 
@@ -319,7 +336,7 @@ class TelegramApiManager
     {
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
-            'text' => sprintf(self::NEW_MASTER_MESSAGE,$newMaster),
+            'text' => sprintf(self::NEW_MASTER_MESSAGE, $newMaster),
         ]);
     }
 
@@ -336,7 +353,7 @@ class TelegramApiManager
         ]);
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
-            'text' => sprintf(self::MATER_WINNER_MESSAGE,$winner),
+            'text' => sprintf(self::MATER_WINNER_MESSAGE, $winner),
         ]);
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
