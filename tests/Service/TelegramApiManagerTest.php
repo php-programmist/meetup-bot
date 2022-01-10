@@ -145,6 +145,7 @@ class TelegramApiManagerTest extends TestCase
     {
         $presentMember = (new Member())->setFullName('John Dow');
         $maybePresentMember = (new Member())->setFullName('Jane Dow');
+        $absentMember = (new Member())->setFullName('Absent Man');
 
         $memberManager = $this->createMock(MemberManager::class);
         $memberManager
@@ -155,6 +156,10 @@ class TelegramApiManagerTest extends TestCase
             ->expects(self::once())
             ->method('getMaybePresentMembers')
             ->willReturn([$maybePresentMember]);
+        $memberManager
+            ->expects(self::once())
+            ->method('getAbsentMembers')
+            ->willReturn([$absentMember]);
 
         $poll = $this->createMock(Poll::class);
         $poll->expects(self::once())
@@ -171,7 +176,13 @@ class TelegramApiManagerTest extends TestCase
             ->method('sendMessage')
             ->with($this->equalTo([
                 'chat_id' => '0',
-                'text' => "Митап начнется через несколько минут! Пора подключаться! \r\nhttps://example.com\r\n Порядок выступления:\r\n1.John Dow\r\n2.?Jane Dow?\r\n",
+                'text' => "Митап начнется через несколько минут! Пора подключаться! ".PHP_EOL.
+                    "https://example.com".PHP_EOL.
+                    " Порядок выступления:".PHP_EOL.
+                    "1.John Dow".PHP_EOL.
+                    "2.?Jane Dow?".PHP_EOL.
+                    PHP_EOL."Отсутствующие:".PHP_EOL.
+                    "1.Absent Man (1)".PHP_EOL,
                 'reply_markup' => Keyboard::remove()
             ]));
 

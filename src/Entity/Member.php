@@ -184,4 +184,12 @@ class Member
         $this->absentCounter = $absentCounter;
         return $this;
     }
+
+    /**
+     * @return void
+     */
+    public function incrementAbsentCounter(): void
+    {
+         $this->absentCounter++;
+    }
 }

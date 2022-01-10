@@ -75,4 +75,23 @@ class MemberManager
             ->getRepository(Member::class)
             ->findWithLastAnswer(TelegramApiManager::ANSWER_MAYBE);
     }
+
+    public function getAbsentMembers():array
+    {
+        $all = $this->getMembers();
+
+        $presentIds = array_map(static function (Member $member){
+            return $member->getId();
+        }, $this->getPresentMembers());
+
+        $maybePresentIds = array_map(static function (Member $member){
+            return $member->getId();
+        }, $this->getMaybePresentMembers());
+
+        $notAbsentIds = array_merge($presentIds, $maybePresentIds);
+
+        return array_filter($all, static function(Member $member) use ($notAbsentIds) {
+            return !in_array($member->getId(), $notAbsentIds, true);
+        });
+    }
 }

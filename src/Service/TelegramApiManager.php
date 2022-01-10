@@ -207,7 +207,7 @@ class TelegramApiManager
 
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
-            'text' => sprintf(self::MESSAGE_RESUME, PHP_EOL . $this->meetupUrl . PHP_EOL, $this->getPresentMessage()),
+            'text' => sprintf(self::MESSAGE_RESUME, PHP_EOL . $this->meetupUrl . PHP_EOL, $this->getResumeMessage()),
             'reply_markup' => Keyboard::remove()
         ]);
     }
@@ -229,10 +229,11 @@ class TelegramApiManager
         ]);
     }
 
-    private function getPresentMessage(): string
+    private function getResumeMessage(): string
     {
         $present = $this->memberManager->getPresentMembers();
         $maybePresent = $this->memberManager->getMaybePresentMembers();
+        $absent = $this->memberManager->getAbsentMembers();
 
         if (empty($present) && empty($maybePresent)) {
             return '';
@@ -258,6 +259,19 @@ class TelegramApiManager
                 $message .= sprintf('%d.?%s?%s', $indexNumber, $member->getFullName(), PHP_EOL);
                 $indexNumber++;
             }
+        }
+
+        if (!empty($absent)) {
+            $indexNumber = 1;
+            $message .=  PHP_EOL . 'Отсутствующие:' . PHP_EOL;
+            /** @var Member $member */
+            foreach ($absent as $member) {
+                $member->incrementAbsentCounter();
+                $message .= sprintf('%d.%s (%d)%s', $indexNumber, $member->getFullName(), $member->getAbsentCounter(), PHP_EOL);
+                $indexNumber++;
+            }
+
+            $this->entityManager->flush();
         }
 
         return $message;
