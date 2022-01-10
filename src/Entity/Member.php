@@ -44,6 +44,11 @@ class Member
      */
     private $ratings;
 
+    /**
+     * @ORM\Column(type="integer", options={"default": 0})
+     */
+    private $absentCounter = 0;
+
     public function __construct()
     {
         $this->messages = new ArrayCollection();
@@ -160,5 +165,23 @@ class Member
     public function __toString():string
     {
         return (string)$this->fullName;
+    }
+
+    /**
+     * @return int
+     */
+    public function getAbsentCounter(): int
+    {
+        return $this->absentCounter;
+    }
+
+    /**
+     * @param int $absentCounter
+     * @return $this
+     */
+    public function setAbsentCounter(int $absentCounter): self
+    {
+        $this->absentCounter = $absentCounter;
+        return $this;
     }
 }
