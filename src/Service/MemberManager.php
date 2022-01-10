@@ -37,7 +37,7 @@ class MemberManager
     {
         return $this->entityManager
             ->getRepository(Member::class)
-            ->findBy([], ['id' => 'asc']);
+            ->findBy([ 'disabled' => false ], ['id' => 'asc']);
     }
 
     public function addMember(string $fullName, string $username): void

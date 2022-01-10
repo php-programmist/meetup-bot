@@ -49,6 +49,11 @@ class Member
      */
     private $absentCounter = 0;
 
+    /**
+     * @ORM\Column(type="boolean", options={"default": false})
+     */
+    private $disabled = false;
+
     public function __construct()
     {
         $this->messages = new ArrayCollection();
@@ -191,5 +196,23 @@ class Member
     public function incrementAbsentCounter(): void
     {
          $this->absentCounter++;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDisabled(): bool
+    {
+        return $this->disabled;
+    }
+
+    /**
+     * @param bool $disabled
+     * @return $this
+     */
+    public function setDisabled(bool $disabled): self
+    {
+        $this->disabled = $disabled;
+        return $this;
     }
 }
