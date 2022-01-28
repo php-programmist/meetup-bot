@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\Master;
 use App\Entity\Member;
 use App\Entity\Poll;
+use App\TelegramCommand\AbsentCommand;
 use App\TelegramCommand\RatingCommand;
 use App\TelegramCommand\StartCommand;
 use DateTime;
@@ -95,6 +96,10 @@ class TelegramApiManager
      * @var MemberManager
      */
     private $memberManager;
+    /**
+     * @var AbsentCommand
+     */
+    private $absentCommand;
 
     /**
      * @param Api $telegram
@@ -104,9 +109,12 @@ class TelegramApiManager
      * @param RouterInterface $router
      * @param MasterManager $masterManager
      * @param RatingCommand $ratingCommand
+     * @param AbsentCommand $absentCommand
      * @param RoundManager $roundManager
+     * @param MemberManager $memberManager
      * @param string $telegramChatId
      * @param string $telegramWebhookToken
+     * @param string $meetupUrl
      */
     public function __construct(
         Api $telegram,
@@ -116,6 +124,7 @@ class TelegramApiManager
         RouterInterface $router,
         MasterManager $masterManager,
         RatingCommand $ratingCommand,
+        AbsentCommand $absentCommand,
         RoundManager $roundManager,
         MemberManager $memberManager,
         string $telegramChatId,
@@ -134,6 +143,7 @@ class TelegramApiManager
         $this->roundManager = $roundManager;
         $this->meetupUrl = $meetupUrl;
         $this->memberManager = $memberManager;
+        $this->absentCommand = $absentCommand;
     }
 
     /**
@@ -433,6 +443,7 @@ class TelegramApiManager
     {
         $this->telegram->addCommands([
             $this->ratingCommand,
+            $this->absentCommand,
             StartCommand::class,
         ]);
     }

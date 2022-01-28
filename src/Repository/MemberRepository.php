@@ -49,6 +49,16 @@ class MemberRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function getAbsentData():array
+    {
+        return $this->createQueryBuilder('m')
+            ->select('m.absentCounter, m.fullName')
+            ->orderBy('m.absentCounter','desc')
+            ->andWhere('m.disabled = 0')
+            ->getQuery()
+            ->getResult();
+    }
+
     // /**
     //  * @return Member[] Returns an array of Member objects
     //  */

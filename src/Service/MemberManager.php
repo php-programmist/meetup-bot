@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Member;
 use Doctrine\ORM\EntityManagerInterface;
+use LucidFrame\Console\ConsoleTable;
 use RuntimeException;
 
 class MemberManager
@@ -93,5 +94,24 @@ class MemberManager
         return array_filter($all, static function(Member $member) use ($notAbsentIds) {
             return !in_array($member->getId(), $notAbsentIds, true);
         });
+    }
+
+    public function getAbsentTable():string
+    {
+        $data = $this->entityManager
+            ->getRepository(Member::class)
+            ->getAbsentData();
+
+        $table = new ConsoleTable();
+        $table
+            ->addHeader('Участник')
+            ->addHeader('Пропуски');
+
+        foreach ($data as $row) {
+            $table->addRow()
+                ->addColumn($row['fullName'])
+                ->addColumn($row['absentCounter']);
+        }
+        return 'Антирейтинг пропусков:'.PHP_EOL.$table->getTable();
     }
 }
