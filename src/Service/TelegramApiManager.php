@@ -371,6 +371,7 @@ class TelegramApiManager
     {
         $rating = $this->masterManager->getRatingTable();
         $winner = $this->masterManager->getWinner();
+        $absent = $this->memberManager->getAbsentTable();
         $this->telegram->sendSticker([
             'chat_id' => $this->telegramChatId,
             'sticker' => array_rand(array_flip(self::STICKERS)),
@@ -382,6 +383,11 @@ class TelegramApiManager
         $this->telegram->sendMessage([
             'chat_id' => $this->telegramChatId,
             'text' => $rating,
+            'parse_mode' => 'html',
+        ]);
+        $this->telegram->sendMessage([
+            'chat_id' => $this->telegramChatId,
+            'text' => $absent,
             'parse_mode' => 'html',
         ]);
         $this->roundManager->startNextRound($winner);

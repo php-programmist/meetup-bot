@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\Master;
+use App\Entity\Member;
 use App\Entity\Round;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -40,6 +41,10 @@ class RoundManager
                 ->setWinner($winner);
             $this->entityManager->flush();
         }
+
+        $this->entityManager
+            ->getRepository(Member::class)
+            ->resetAbsentCounters();
 
         $newRound = new Round();
         $this->entityManager->persist($newRound);

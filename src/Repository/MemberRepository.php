@@ -59,6 +59,12 @@ class MemberRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function resetAbsentCounters():void
+    {
+        $this->getEntityManager()->getConnection()
+            ->executeStatement('UPDATE member SET absent_counter = 0');
+    }
+
     // /**
     //  * @return Member[] Returns an array of Member objects
     //  */
