@@ -25,7 +25,17 @@ class MemberManager
     {
         $member = $this->entityManager->getRepository(Member::class)->findOneBy(['username' => $username]);
         if (null === $member) {
-            throw new RuntimeException(sprintf('Member with username %s not found', $username));
+            throw new RuntimeException(sprintf('Участник с логином %s не найден', $username));
+        }
+
+        return $member;
+    }
+
+    public function findByFullNameOrFail(string $fullName): Member
+    {
+        $member = $this->entityManager->getRepository(Member::class)->findOneBy(['fullName' => $fullName]);
+        if (null === $member) {
+            throw new RuntimeException(sprintf('Участник %s не найден', $fullName));
         }
 
         return $member;
@@ -113,5 +123,17 @@ class MemberManager
                 ->addColumn($row['absentCounter']);
         }
         return 'Антирейтинг пропусков:'.PHP_EOL.$table->getTable();
+    }
+
+    public function incrementAbsentCounter(Member $member):void
+    {
+        $member->incrementAbsentCounter();
+        $this->entityManager->flush();
+    }
+
+    public function decrementAbsentCounter(Member $member):void
+    {
+        $member->decrementAbsentCounter();
+        $this->entityManager->flush();
     }
 }

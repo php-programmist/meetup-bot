@@ -199,6 +199,14 @@ class Member
     }
 
     /**
+     * @return void
+     */
+    public function decrementAbsentCounter(): void
+    {
+         $this->absentCounter--;
+    }
+
+    /**
      * @return bool
      */
     public function isDisabled(): bool

@@ -8,7 +8,9 @@ use App\Entity\Master;
 use App\Entity\Member;
 use App\Entity\Poll;
 use App\TelegramCommand\AbsentCommand;
+use App\TelegramCommand\AddAbsentCommand;
 use App\TelegramCommand\RatingCommand;
+use App\TelegramCommand\RemoveAbsentCommand;
 use App\TelegramCommand\StartCommand;
 use DateTime;
 use Doctrine\DBAL\Exception;
@@ -100,6 +102,14 @@ class TelegramApiManager
      * @var AbsentCommand
      */
     private $absentCommand;
+    /**
+     * @var AddAbsentCommand
+     */
+    private $addAbsentCommand;
+    /**
+     * @var RemoveAbsentCommand
+     */
+    private $removeAbsentCommand;
 
     /**
      * @param Api $telegram
@@ -125,6 +135,8 @@ class TelegramApiManager
         MasterManager $masterManager,
         RatingCommand $ratingCommand,
         AbsentCommand $absentCommand,
+        AddAbsentCommand $addAbsentCommand,
+        RemoveAbsentCommand $removeAbsentCommand,
         RoundManager $roundManager,
         MemberManager $memberManager,
         string $telegramChatId,
@@ -144,6 +156,8 @@ class TelegramApiManager
         $this->meetupUrl = $meetupUrl;
         $this->memberManager = $memberManager;
         $this->absentCommand = $absentCommand;
+        $this->addAbsentCommand = $addAbsentCommand;
+        $this->removeAbsentCommand = $removeAbsentCommand;
     }
 
     /**
@@ -450,6 +464,8 @@ class TelegramApiManager
         $this->telegram->addCommands([
             $this->ratingCommand,
             $this->absentCommand,
+            $this->addAbsentCommand,
+            $this->removeAbsentCommand,
             StartCommand::class,
         ]);
     }
