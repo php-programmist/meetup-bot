@@ -51,12 +51,12 @@ class MasterRepository extends ServiceEntityRepository
     public function getRatingData(?Round $round): array
     {
         $builder = $this->createQueryBuilder('master')
-            ->select('m.id, m.fullName')
+            ->select('master.id, m.fullName')
             ->addSelect('coalesce(avg(ratings.score),0) as score')
             ->addSelect('coalesce(count(ratings.score),0) as votes')
             ->join('master.member', 'm')
             ->andWhere('master.disabled = 0')
-            ->groupBy('m.id')
+            ->groupBy('master.id')
             ->orderBy('score', 'desc')
             ->addOrderBy('votes', 'desc');
 
