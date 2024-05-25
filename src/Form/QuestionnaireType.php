@@ -5,6 +5,8 @@ namespace App\Form;
 use App\Entity\Master;
 use App\Entity\Member;
 use App\Model\Questionnaire;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -18,11 +20,24 @@ class QuestionnaireType extends AbstractType
         $builder
             ->add('master',EntityType::class,[
                 'class' => Master::class,
+                'query_builder' => function (EntityRepository $er): QueryBuilder {
+                    return $er->createQueryBuilder('m')
+                        ->where('m.disabled = false')
+                        ->join('m.member', 'member')
+                        ->orderBy('member.fullName', 'ASC');
+                },
+                'choice_label' => 'member.fullName',
                 'required' => true,
                 'placeholder' => 'Не выбран',
             ])
             ->add('evaluator',EntityType::class,[
                 'class' => Member::class,
+                'query_builder' => function (EntityRepository $er): QueryBuilder {
+                    return $er->createQueryBuilder('m')
+                        ->where('m.disabled = false')
+                        ->orderBy('m.fullName', 'ASC');
+                },
+                'choice_label' => 'fullName',
                 'required' => true,
                 'placeholder' => 'Не выбран',
             ])

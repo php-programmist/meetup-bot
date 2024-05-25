@@ -19,7 +19,7 @@ class QuestionnaireController extends AbstractController
     const EVALUATOR_KEY = 'evaluator';
 
     /**
-     * @Route("/questionnaire", name="questionnaire")
+     * @Route("/", name="questionnaire")
      * @param Request $request
      * @param RatingManager $ratingManager
      * @param MasterManager $masterManager
