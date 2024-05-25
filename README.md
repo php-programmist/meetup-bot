@@ -42,6 +42,17 @@ php bin/console app:telegram:setup
 ```
 После этого в чат должно прийти сообщение 'Webhook set successful'
 
+## Создать пользователя:
+С помощью команды можно создать пользователя `admin` с паролем `password`
+```bash
+php bin/console user:create admin password
+```
+
+Изменить пароль можно так:
+```bash
+php bin/console user:change-password admin new_password
+```
+
 ### Создайте список участников чата 
 Укажите имена и логины в Telegram (без @) участников чата, которые должны быть приглашены на ежедневные встречи. Добавлять, удалять и просматривать список можно с помощью соответствующих команд:
 ```bash
